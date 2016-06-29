@@ -16,13 +16,14 @@ import akka.http.scaladsl.model.headers.BasicHttpCredentials
 import akka.http.scaladsl.model.headers.Authorization
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.typesafe.scalalogging.LazyLogging
-
+import spray.json._
+import DefaultJsonProtocol._
 import concurrent.ExecutionContext.Implicits.global
 
 /**
   * Created by davenpcm on 6/29/16.
   */
-object MainApplication extends App with LazyLogging{
+object MainApplication extends App with LazyLogging with DefaultJsonProtocol{
 
 
   val config = ConfigFactory.load()
@@ -50,7 +51,9 @@ object MainApplication extends App with LazyLogging{
     case HttpResponse(StatusCodes.OK, headers, entity, _) =>
       val entityF = Unmarshal(entity).to[String]
       val entityHere = Await.result(entityF, Duration.Inf)
-    logger.debug(entityHere.toString)
+      val toObject = entityHere.parseJson.asJsObject()
+      val fields = toObject.fields.keys
+    logger.debug(s"$fields")
 
     case HttpResponse(code, _, _, _) =>
       val codeVal = code.value
