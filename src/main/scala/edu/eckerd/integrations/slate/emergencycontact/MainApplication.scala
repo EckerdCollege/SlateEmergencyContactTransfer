@@ -16,57 +16,38 @@ import akka.http.scaladsl.model.headers.BasicHttpCredentials
 import akka.http.scaladsl.model.headers.Authorization
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import com.typesafe.scalalogging.LazyLogging
-import spray.json._
-import DefaultJsonProtocol._
+import edu.eckerd.integrations.slate.emergencycontact.model.{SlateEmergencyContactInfo, SlateResponse}
+//import spray.json._
+
+//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
+//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport.sprayJsonMarshallerConverter
+//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport.sprayJsonUnmarshaller
+//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport.sprayJsonUnmarshallerConverter
+//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport.sprayJsValueUnmarshaller
 import concurrent.ExecutionContext.Implicits.global
 
 /**
   * Created by davenpcm on 6/29/16.
   */
-object MainApplication extends App with LazyLogging with DefaultJsonProtocol{
+object MainApplication extends SlateToData with jsonParserProtocol with LazyLogging with App {
 
+  val request = GetRequestConfiguration()
 
-  val config = ConfigFactory.load()
-  val slateConfig = config.getConfig("slate")
-  val user = slateConfig.getString("user")
-  if (user == "") throw new Error("Slate Username is Blank")
-  val password = slateConfig.getString("password")
-  if (password == "") throw new Error("Slate Password is Blank")
-  val link = slateConfig.getString("link")
-  if (link == "") throw new Error("Slate Link is Blank")
-
-  implicit val system = ActorSystem("EmergencyContact")
+  implicit val system = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
 
-  val authorization = Authorization(BasicHttpCredentials(user, password))
+  val dataF = TransformData[SlateEmergencyContactInfo](request.link, request.user, request.password)
 
-  val responseFuture = Http(system).singleRequest(HttpRequest(
-    uri = link,
-    headers = List(authorization)
-  ))
+  val printF = for {
+    data <- dataF
+  } yield for {
+    response <- data
+  } yield logger.debug(s"$response")
 
-  val response = Await.result(responseFuture, Duration.Inf)
+  val KillActorSystem = for {
+    printed <- printF
+    terminate <- system.terminate()
+  } yield terminate
 
-  response match {
-    case HttpResponse(StatusCodes.OK, headers, entity, _) =>
-      val entityF = Unmarshal(entity).to[String]
-      val entityHere = Await.result(entityF, Duration.Inf)
-      val toObject = entityHere.parseJson.asJsObject()
-      val fields = toObject.fields.keys
-    logger.debug(s"$fields")
-
-    case HttpResponse(code, _, _, _) =>
-      val codeVal = code.value
-      if (codeVal != "500 Internal Server Error"){
-        logger.error("Invalid Status Code: " + codeVal)
-
-      } else {
-        logger.debug(s"Server Failure : $codeVal")
-      }
-  }
-  Http().shutdownAllConnectionPools().onComplete{ _ =>
-    system.terminate
-  }
-
-  Await.result(system.whenTerminated, Duration.Inf)
+  Await.result(KillActorSystem, Duration.Inf)
 }
