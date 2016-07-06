@@ -1,35 +1,17 @@
 package edu.eckerd.integrations.slate.emergencycontact
+
 import akka.actor.ActorSystem
-import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.StatusCodes
-import akka.http.scaladsl.model.HttpResponse
-import akka.http.scaladsl.model.HttpRequest
-import akka.stream.scaladsl.Flow
-import akka.stream.scaladsl.Source
-import akka.stream.scaladsl.Sink
 import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 
-import concurrent.duration.SECONDS
 import concurrent.duration.Duration
-import concurrent.{Await, Future}
-import com.typesafe.config.ConfigFactory
-import akka.http.scaladsl.model.headers.BasicHttpCredentials
-import akka.http.scaladsl.model.headers.Authorization
-import akka.http.scaladsl.unmarshalling.Unmarshal
+import concurrent.{Await, ExecutionContext, Future}
 import com.typesafe.scalalogging.LazyLogging
-import edu.eckerd.integrations.slate.emergencycontact.model.{SlateEmergencyContactInfo, SlateResponse}
+import edu.eckerd.integrations.slate.emergencycontact.model.SlateEmergencyContactInfo
 import edu.eckerd.integrations.slate.emergencycontact.persistence.{DBFunctions, SPREMRG}
 import slick.backend.DatabaseConfig
 import slick.driver.JdbcProfile
 
 import scala.annotation.tailrec
-//import spray.json._
-
-//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport._
-//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport.sprayJsonMarshallerConverter
-//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport.sprayJsonUnmarshaller
-//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport.sprayJsonUnmarshallerConverter
-//import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport.sprayJsValueUnmarshaller
 import concurrent.ExecutionContext.Implicits.global
 
 /**
@@ -46,19 +28,14 @@ object MainApplication extends SlateToData with jsonParserProtocol with DBFuncti
 
   val dataF = TransformData[SlateEmergencyContactInfo](request.link, request.user, request.password)
 
-  val printF = for {
-    data <- dataF
-  } yield for {
-    response <- data
-  } yield {
-    response
-  }
+  val rowsF = dataF.flatMap(toRows).map(PartitionToGroups)
 
-  val data = Await.result(printF, Duration.Inf)
+  val sticklers = rowsF.map(_._2).map(DealWithNonCompliantRecords).flatMap(Courier.sendManualParseEmail)
+  val writeToDB = rowsF.map(_._1).flatMap(UpdateDB)
 
-//  val prioritiesFixed = data.groupBy(_.BannerID).map(_._2.toList).flatMap(changePriorities(_))
+  Await.result(sticklers, Duration.Inf)
+  Await.result(writeToDB, Duration.Inf)
 
-  alterDataToCorrectPriorites(data).map(_.BannerID).map(t => (t, Await.result(getPidmFromBannerID(t), Duration.Inf))).foreach(println)
 
 
 
@@ -91,48 +68,132 @@ object MainApplication extends SlateToData with jsonParserProtocol with DBFuncti
   }
 
 
-  def parsePhone(contactInfo: SlateEmergencyContactInfo): PhoneNumber = {
-    val parse = contactInfo.ECCell.getOrElse("").replace("+", "").replace(".", "-").replace(" ", "-")
+  def parsePhone(contactInfo: SlateEmergencyContactInfo): Either[String, PhoneNumber] = {
+    val number = contactInfo.ECCell.getOrElse("")
+    val parse = number.replace("+", "").replace(".", "-").replace(" ", "-")
     parse match {
       case usNumber if usNumber.startsWith("1-") && usNumber.length == 14 =>
         val areaCode = usNumber.dropWhile(_ != '-').drop(1).takeWhile(_ != '-')
         val phoneNumber = usNumber.dropWhile(_ != '-').drop(1).dropWhile(_ != '-').drop(1).replace("-", "")
-        UsPhoneNumber("1", areaCode, phoneNumber )
-      case anythingElse =>
-        val textBlob = anythingElse.replace("-", "")
-        val fakeAreaCodeOfFirstThreeNumbersDontBlameMePlease = textBlob.take(3)
-        val restOfNumberThatIsCompleteConstructDontBlameMePlase = textBlob.drop(3)
-        IntlPhoneNumber(
-          fakeAreaCodeOfFirstThreeNumbersDontBlameMePlease,
-          restOfNumberThatIsCompleteConstructDontBlameMePlase
-        )
+        Right(PhoneNumber("1", Some(areaCode), phoneNumber ))
+//      case intlParsed if intlParsed.dropWhile(_ != "-").drop(1).length <= 12 && !intlParsed.startsWith("1-") =>
+//        val natnCode = intlParsed.takeWhile(_ != "-")
+//        val phoneNumber = intlParsed.dropWhile(_ != "-").drop(1).replace("-", "")
+//        Right(PhoneNumber(natnCode, None, phoneNumber ))
+      case _ => Left(number)
     }
   }
 
-  sealed trait PhoneNumber {
-    val areaCode: String
-    val phoneNumber: String
+  def toRows(records: Seq[SlateEmergencyContactInfo])
+  : Future[List[Either[SlateEmergencyContactInfo, SpremrgRow]]] = Future.sequence{
+    for {
+      record <- alterDataToCorrectPriorites(records)
+    } yield for {
+      pidm <- getPidmFromBannerID(record.BannerID)
+      map <- generateRelationshipMap()
+    } yield {
+
+      val firstName = record.ECName.takeWhile(_ != ' ')
+      val lastName = record.ECName.dropWhile(_ != ' ').drop(1)
+      val phone = parsePhone(record)
+
+      val relationshipCode = map.get(record.ECRelationship)
+
+
+      val either = (pidm, phone) match {
+        case (Some(pid), Right(usPhoneNumber)) =>
+          Right(
+            SpremrgRow(
+              pid,
+              record.ECPriority.charAt(0),
+              lastName,
+              firstName,
+              record.ECAddressStreet,
+              record.ECAddressCity,
+              record.ECAddressPostal,
+              Some(usPhoneNumber.natnCode),
+              usPhoneNumber.areaCode,
+              Some(usPhoneNumber.phoneNumber),
+              relationshipCode,
+              new java.sql.Timestamp(new java.util.Date().getTime),
+              Some("Slate Transfer"),
+              Some("slate")
+            )
+          )
+        case (_ , _) =>
+          Left(record)
+      }
+
+      either
+    }
   }
 
-  case class UsPhoneNumber(
+  def PartitionToGroups(list: List[Either[SlateEmergencyContactInfo, SpremrgRow]]):
+  (List[SpremrgRow], List[SlateEmergencyContactInfo]) = {
+
+    val partition = list.partition(_.isRight)
+    val rowsForDB = partition._1.map(_.right.get)
+    val rowsForManualEntry = partition._2.map(_.left.get)
+
+    (rowsForDB, rowsForManualEntry)
+  }
+
+  /**
+    * Update The Database And Then Throw It away
+    * @param list List of All Users To Update
+    * @param db Database to write To
+    * @param ec Execution Context to Fork Processes Off Of
+    * @return Unit. Fire and Forget On The Edge of The Application
+    */
+  def UpdateDB(list: List[SpremrgRow])(implicit db: JdbcProfile#Backend#Database, ec: ExecutionContext): Future[Unit] = {
+    import profile.api._
+
+    val r = for {
+      result <- db.run(Spremrg ++= list)
+    } yield result
+
+    r.map(_ => ())
+  }
+
+  def DealWithNonCompliantRecords(list: List[SlateEmergencyContactInfo]): String = {
+    list.map(printEmergencyContactInfoAsHTMLRow).foldRight("")(_ + _)
+  }
+
+  def prettyPrintEmergencyContactInfo(slateEmergencyContactInfo: SlateEmergencyContactInfo): String = {
+      s"""BannerID         - ${slateEmergencyContactInfo.BannerID}
+      |Priority Number  - ${slateEmergencyContactInfo.ECPriority}
+      |Name             - ${slateEmergencyContactInfo.ECName}
+      |Relationship     - ${slateEmergencyContactInfo.ECRelationship}
+      |Phone Number     - ${slateEmergencyContactInfo.ECCell.getOrElse("")}
+      |Street Address   - ${slateEmergencyContactInfo.ECAddressStreet.getOrElse("")}
+      |City             - ${slateEmergencyContactInfo.ECAddressCity.getOrElse("")}
+      |Zip Code         - ${slateEmergencyContactInfo.ECAddressPostal.getOrElse("")}""".stripMargin
+  }
+
+  def printEmergencyContactInfoAsHTMLRow(slateEmergencyContactInfo: SlateEmergencyContactInfo): String = {
+    s"""
+       |<tr>
+       |  <td>${slateEmergencyContactInfo.BannerID}</td>
+       |  <td>${slateEmergencyContactInfo.ECPriority}</td>
+       |  <td>${slateEmergencyContactInfo.ECName}</td>
+       |  <td>${slateEmergencyContactInfo.ECRelationship}</td>
+       |  <td>${slateEmergencyContactInfo.ECCell.getOrElse("")}</td>
+       |  <td>${slateEmergencyContactInfo.ECAddressStreet.getOrElse("")}</td>
+       |  <td>${slateEmergencyContactInfo.ECAddressCity.getOrElse("")}</td>
+       |  <td>${slateEmergencyContactInfo.ECAddressPostal.getOrElse("")}</td>
+       |</tr>
+     """.stripMargin
+  }
+
+  case class PhoneNumber(
                           natnCode: String,
-                          areaCode: String,
+                          areaCode: Option[String],
                           phoneNumber: String
-                          ) extends PhoneNumber
+                          )
 
-  case class IntlPhoneNumber(
-                              areaCode: String,
-                              phoneNumber: String
-                             ) extends PhoneNumber
-
-
-
-
-
-//  val KillActorSystem = for {
-//    printed <- printF
-//    terminate <- system.terminate()
-//  } yield terminate
+//  val emailSend = Courier.sendQuickEmail()
+//
+//  Await.result(emailSend, Duration.Inf)
 
   Await.result(system.terminate(), Duration.Inf)
 }

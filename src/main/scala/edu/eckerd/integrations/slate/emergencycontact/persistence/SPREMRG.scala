@@ -30,7 +30,8 @@ trait SPREMRG {
                        streetAddr: Option[String],
                        city: Option[String],
                        zip: Option[String],
-                       areaCode: Option[String],
+                       phoneCountryCode: Option[String],
+                       phoneAreaCode: Option[String],
                        phoneNumber: Option[String],
                        relationshipCode: Option[Char],
                        activityDate: java.sql.Timestamp,
@@ -48,6 +49,7 @@ trait SPREMRG {
       spremrgStreetLine1,
       spremrgCity ,
       spremrgZip ,
+      spremrgCtryCodePhone,
       spremrgPhoneArea ,
       spremrgPhoneNumber ,
       spremrgReltCode ,
@@ -109,8 +111,8 @@ trait SPREMRG {
 //    val spremrgReviewedUser: Rep[Option[String]] = column[Option[String]]("SPREMRG_REVIEWED_USER", O.Length(30,varying=true))
 //    /** Database column SPREMRG_SURNAME_PREFIX SqlType(VARCHAR2), Length(60,true) */
 //    val spremrgSurnamePrefix: Rep[Option[String]] = column[Option[String]]("SPREMRG_SURNAME_PREFIX", O.Length(60,varying=true))
-//    /** Database column SPREMRG_CTRY_CODE_PHONE SqlType(VARCHAR2), Length(4,true) */
-//    val spremrgCtryCodePhone: Rep[Option[String]] = column[Option[String]]("SPREMRG_CTRY_CODE_PHONE", O.Length(4,varying=true))
+    /** Database column SPREMRG_CTRY_CODE_PHONE SqlType(VARCHAR2), Length(4,true) */
+    val spremrgCtryCodePhone: Rep[Option[String]] = column[Option[String]]("SPREMRG_CTRY_CODE_PHONE", O.Length(4,varying=true))
 //    /** Database column SPREMRG_HOUSE_NUMBER SqlType(VARCHAR2), Length(10,true) */
 //    val spremrgHouseNumber: Rep[Option[String]] = column[Option[String]]("SPREMRG_HOUSE_NUMBER", O.Length(10,varying=true))
 //    /** Database column SPREMRG_STREET_LINE4 SqlType(VARCHAR2), Length(75,true) */
@@ -123,7 +125,7 @@ trait SPREMRG {
 //    val spremrgVpdiCode: Rep[Option[String]] = column[Option[String]]("SPREMRG_VPDI_CODE", O.Length(6,varying=true))
 
     /** Primary key of Spremrg (database name PK_SPREMRG) */
-//    val pk = primaryKey("PK_SPREMRG", (spremrgPidm, spremrgPriority) )
+    val pk = primaryKey("PK_SPREMRG", (spremrgPidm, spremrgPriority) )
   }
   /** Collection-like TableQuery object for table Spremrg */
   lazy val Spremrg = new TableQuery(tag => new Spremrg(tag))
