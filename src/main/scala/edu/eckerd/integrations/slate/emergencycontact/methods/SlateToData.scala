@@ -4,7 +4,7 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.headers._
 import akka.http.scaladsl.unmarshalling.{Unmarshal, Unmarshaller}
-import akka.stream.ActorMaterializer
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
 import com.typesafe.config.ConfigFactory
 import edu.eckerd.integrations.slate.emergencycontact.model.{SlateRequest, SlateResponse}
 import akka.http.scaladsl.model.{HttpRequest, HttpResponse, ResponseEntity, StatusCodes}
@@ -15,44 +15,43 @@ import scala.concurrent.{ExecutionContext, Future}
   */
 trait SlateToData {
 
-
-
-  def GetRequestConfiguration() : SlateRequest = {
+  def requestForConfig(configLocation: String) : SlateRequest = {
     val config = ConfigFactory.load()
-    val slateConfig = config.getConfig("slate")
+    val slateConfig = config.getConfig(configLocation)
     val user = slateConfig.getString("user")
-    if (user == "") throw new Error("Slate Username is Blank")
     val password = slateConfig.getString("password")
-    if (password == "") throw new Error("Slate Password is Blank")
     val link = slateConfig.getString("link")
-    if (link == "") throw new Error("Slate Link is Blank")
     SlateRequest(link, user, password)
   }
 
-  def TransformData[A](link: String, user: String, password: String )
-                      (implicit system: ActorSystem,
-                       materializer: ActorMaterializer,
-                       ec : ExecutionContext,
-                      um: Unmarshaller[ResponseEntity, SlateResponse[A]]
+  def TransformData[A](slateRequest: SlateRequest)
+                      (
+                        implicit ec : ExecutionContext,
+                        um: Unmarshaller[ResponseEntity, SlateResponse[A]]
                       ): Future[Seq[A]] = {
-    val authorization = Authorization(BasicHttpCredentials(user, password))
+
+    implicit val system = ActorSystem()
+    implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
+    val authorization = Authorization(BasicHttpCredentials(slateRequest.user, slateRequest.password))
 
     val responseFuture = Http(system).singleRequest(HttpRequest(
-      uri = link,
+      uri = slateRequest.link,
       headers = List(authorization)
     ))
 
-
-
     responseFuture.flatMap {
       case HttpResponse(StatusCodes.OK, headers, entity, _) =>
-        Http().shutdownAllConnectionPools()
-        val entityF = Unmarshal(entity).to[SlateResponse[A]]
-        entityF.map(_.row)
-
+        for {
+          slateResponse <- Unmarshal(entity).to[SlateResponse[A]]
+          shutdownHttp <- Http(system).shutdownAllConnectionPools()
+          terminate <- system.terminate()
+        } yield slateResponse.row
       case HttpResponse(code, _, _, _) =>
-        Http().shutdownAllConnectionPools()
-        Future.failed(new Throwable(s"Received invalid response code - $code"))
+        for {
+          shutdownHttp <- Http(system).shutdownAllConnectionPools()
+          terminate <- system.terminate()
+          failure <- Future.failed(new Throwable(s"Received invalid response code - $code"))
+        } yield failure
     }
   }
 }

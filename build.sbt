@@ -6,6 +6,8 @@ scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf
 
 unmanagedBase := baseDirectory.value / ".lib"
 
+mainClass in Compile := Some("edu.eckerd.integrations.slate.emergencycontact.MainApplication")
+
 libraryDependencies ++= {
   val akkaV             = "2.4.7"
   val scalaTestV        = "2.2.6"
@@ -26,5 +28,4 @@ libraryDependencies ++= {
   )
 }
 
-
-//enablePlugins(JavaAppPackaging)
+enablePlugins(JavaAppPackaging)
