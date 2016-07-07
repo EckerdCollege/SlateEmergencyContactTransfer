@@ -15,7 +15,6 @@ import concurrent.ExecutionContext.Implicits.global
   */
 object MainApplication
   extends SlateToData
-    with jsonParserProtocol
     with EmergencyContactMethods
     with DBImpl
     with LazyLogging

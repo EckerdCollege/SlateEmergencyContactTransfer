@@ -13,7 +13,7 @@ import scala.concurrent.{ExecutionContext, Future}
 /**
   * Created by davenpcm on 6/30/16.
   */
-trait SlateToData {
+trait SlateToData extends jsonParserProtocol {
 
   def requestForConfig(configLocation: String) : SlateRequest = {
     val config = ConfigFactory.load()
