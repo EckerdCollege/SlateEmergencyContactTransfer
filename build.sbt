@@ -21,7 +21,8 @@ libraryDependencies ++= {
     "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0",
     "com.typesafe.slick" %% "slick" % slickV,
     "com.typesafe.slick" %% "slick-extensions" % "3.1.0" ,
-    "com.typesafe.slick" %% "slick-hikaricp" % slickV
+    "com.typesafe.slick" %% "slick-hikaricp" % slickV,
+    "me.lessis" %% "courier" % "0.1.3"
   )
 }
 

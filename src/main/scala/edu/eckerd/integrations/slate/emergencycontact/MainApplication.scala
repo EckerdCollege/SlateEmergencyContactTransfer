@@ -28,26 +28,14 @@ object MainApplication extends SlateToData with jsonParserProtocol with Emergenc
   implicit val system = ActorSystem()
   implicit val materializer: ActorMaterializer = ActorMaterializer(ActorMaterializerSettings(system))
 
+  logger.info("Starting Slate Emergency Request Transfer")
+
   val dataF = TransformData[SlateEmergencyContactInfo](request.link, request.user, request.password)
 
   Await.result( ProcessRequests(dataF), Duration.Inf)
 
-//  val rowsF = dataF.flatMap(toRows).map(PartitionToGroups)
-//
-//  val sticklers = rowsF.map(_._2).map(DealWithNonCompliantRecords).flatMap(Courier.sendManualParseEmail)
-//  val writeToDB = rowsF.map(_._1).flatMap(UpdateDB)
-//
-//  Await.result(sticklers, Duration.Inf)
-//  println("Sticklers Complete")
-//  Await.result(writeToDB, Duration.Inf)
-//  println("Write To Database Complete")
-
   val terminate = system.terminate()
   Await.result(system.whenTerminated, Duration(10, SECONDS))
 
-
-
-
-
-
+  logger.info("Exiting Slate Emergency Request Transfer Normally")
 }
