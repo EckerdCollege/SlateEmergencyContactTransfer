@@ -1,11 +1,12 @@
-package edu.eckerd.integrations.slate.emergencycontact
-import com.typesafe.config.ConfigFactory
+package edu.eckerd.integrations.slate.emergencycontact.methods
+
 import javax.mail.internet.InternetAddress
+
+import com.typesafe.config.ConfigFactory
 import courier.Defaults._
-import courier.Mailer
-import courier.Multipart
-import courier.Envelope
-import concurrent.Future
+import courier.{Envelope, Mailer, Multipart}
+
+import scala.concurrent.Future
 /**
   * Created by davenpcm on 7/6/16.
   */

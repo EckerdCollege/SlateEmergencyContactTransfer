@@ -1,17 +1,15 @@
-package edu.eckerd.integrations.slate.emergencycontact
+package edu.eckerd.integrations.slate.emergencycontact.methods
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.{HttpRequest, HttpResponse, StatusCodes}
-import akka.http.scaladsl.model.ResponseEntity
-import akka.http.scaladsl.model.headers.{Authorization, BasicHttpCredentials}
-import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.http.scaladsl.unmarshalling.Unmarshaller
-import edu.eckerd.integrations.slate.emergencycontact.model.{SlateRequest, SlateResponse}
 import akka.http.scaladsl.Http
+import akka.http.scaladsl.model.headers._
+import akka.http.scaladsl.unmarshalling.{Unmarshal, Unmarshaller}
 import akka.stream.ActorMaterializer
 import com.typesafe.config.ConfigFactory
+import edu.eckerd.integrations.slate.emergencycontact.model.{SlateRequest, SlateResponse}
+import akka.http.scaladsl.model.{HttpRequest, HttpResponse, ResponseEntity, StatusCodes}
 
-import concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Future}
 /**
   * Created by davenpcm on 6/30/16.
   */

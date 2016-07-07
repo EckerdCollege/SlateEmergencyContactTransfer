@@ -1,10 +1,8 @@
-package edu.eckerd.integrations.slate.emergencycontact
+package edu.eckerd.integrations.slate.emergencycontact.methods
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-import edu.eckerd.integrations.slate.emergencycontact.model.SlateResponse
-import edu.eckerd.integrations.slate.emergencycontact.model.SlateEmergencyContactInfo
-import spray.json._
-import spray.json.DefaultJsonProtocol
+import edu.eckerd.integrations.slate.emergencycontact.model.{SlateEmergencyContactInfo, SlateResponse}
+import spray.json.{DefaultJsonProtocol, _}
 
 /**
   * Created by davenpcm on 6/29/16.
