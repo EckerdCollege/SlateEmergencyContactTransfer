@@ -34,8 +34,7 @@ libraryDependencies ++= {
     "com.typesafe.slick" %% "slick" % slickV,
     "com.typesafe.slick" %% "slick-extensions" % "3.1.0" ,
     "com.typesafe.slick" %% "slick-hikaricp" % slickV,
-    "me.lessis" %% "courier" % "0.1.3"//,
-//    "com.spotify" % "docker-client" % "3.5.13"
+    "me.lessis" %% "courier" % "0.1.3"
   )
 }
 
@@ -63,5 +62,6 @@ rpmLicense := Some("Apache 2.0 License")
 enablePlugins(UniversalPlugin)
 enablePlugins(LinuxPlugin)
 enablePlugins(RpmPlugin)
-//enablePlugins(DockerSpotifyClientPlugin)
+enablePlugins(DockerPlugin)
+enablePlugins(DockerSpotifyClientPlugin)
 enablePlugins(JavaAppPackaging)

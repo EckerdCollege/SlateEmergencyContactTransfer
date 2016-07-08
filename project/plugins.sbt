@@ -1,5 +1,7 @@
 resolvers += Classpaths.sbtPluginReleases
 
+libraryDependencies += "com.spotify" % "docker-client" % "3.5.13"
+
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.6.0")
 addSbtPlugin("com.sksamuel.scapegoat" %% "sbt-scapegoat" % "1.0.4")
 addSbtPlugin("org.scalastyle" %% "scalastyle-sbt-plugin" % "0.8.0")
