@@ -5,12 +5,8 @@ organization  := "edu.eckerd"
 maintainer := "Christopher Davenport <ChristopherDavenport@outlook.com>"
 packageSummary := "A transfer application that moves Emergency Contact Information Between Slate and Banner"
 
-packageDescription :=
-  """This application transfers Emergency Contact information securely between Slate and Banner.
-    |It serves to reduces manual data entry.
-  """.stripMargin
 
-version       := "0.0.1"
+version       := "0.1.0"
 scalaVersion  := "2.11.8"
 scalacOptions := Seq("-unchecked", "-feature", "-deprecation", "-encoding", "utf8")
 
@@ -45,23 +41,12 @@ headers := Map(
 
 resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/maven-releases/"
 
-name in Universal := name.value
-name in UniversalDocs <<= name in Universal
-name in UniversalSrc <<= name in Universal
-packageName in Universal := packageName.value
-mappings in Universal += {
-  sourceDirectory.value / "main" / "resources" / "application.conf" -> "conf/application.conf"
-}
+mappings in Universal ++= Seq(
+  sourceDirectory.value / "main" / "resources" / "application.conf" -> "conf/application.conf",
+  sourceDirectory.value / "main" / "resources" / "logback.xml" -> "conf/logback.xml"
+)
 
-name in Linux := name.value
+rpmVendor := "Eckerd College"
+rpmLicense := Some("Apache 2.0")
 
-linuxPackageMappings in Rpm := linuxPackageMappings.value
-
-rpmVendor := "eckerd"
-rpmLicense := Some("Apache 2.0 License")
-enablePlugins(UniversalPlugin)
-enablePlugins(LinuxPlugin)
-enablePlugins(RpmPlugin)
-enablePlugins(DockerPlugin)
-enablePlugins(DockerSpotifyClientPlugin)
 enablePlugins(JavaAppPackaging)
