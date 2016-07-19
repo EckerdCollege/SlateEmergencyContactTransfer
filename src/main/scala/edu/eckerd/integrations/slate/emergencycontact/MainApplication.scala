@@ -16,13 +16,18 @@
 
 package edu.eckerd.integrations.slate.emergencycontact
 
+import akka.actor.ActorSystem
+import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+
 import concurrent.duration.SECONDS
 import concurrent.duration.Duration
 import concurrent.Await
 import com.typesafe.scalalogging.LazyLogging
-import edu.eckerd.integrations.slate.emergencycontact.methods.{ EmergencyContactMethods, SlateToData, jsonParserProtocol }
+import edu.eckerd.integrations.slate.emergencycontact.methods.EmergencyContactMethods
+import edu.eckerd.integrations.slate.emergencycontact.methods.EmergencyContactJsonProtocol
 import edu.eckerd.integrations.slate.emergencycontact.model.SlateEmergencyContactInfo
 import edu.eckerd.integrations.slate.emergencycontact.persistence.DBImpl
+import edu.eckerd.integrations.slate.core.Request
 
 import concurrent.ExecutionContext.Implicits.global
 
@@ -30,16 +35,19 @@ import concurrent.ExecutionContext.Implicits.global
  * Created by davenpcm on 6/29/16.
  */
 object MainApplication
-    extends SlateToData
-    with EmergencyContactMethods
+    extends EmergencyContactMethods
     with DBImpl
     with LazyLogging
     with App {
+  import EmergencyContactJsonProtocol._
 
   logger.info("Starting Slate Emergency Request Transfer")
 
+  val actions = Request.SingleRequestForConfig[SlateEmergencyContactInfo]("slate")
+    .flatMap(ProcessRequests)
+
   Await.result(
-    ProcessRequests(TransformData[SlateEmergencyContactInfo](requestForConfig("slate"))),
+    actions,
     Duration(60, SECONDS)
   )
 

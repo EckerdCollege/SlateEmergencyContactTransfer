@@ -37,7 +37,7 @@ trait EmergencyContactMethods extends DBFunctions {
    * @param db This is the database that we are interacting with.
    * @return
    */
-  def ProcessRequests(allRequests: Future[Seq[SlateEmergencyContactInfo]])(implicit ec: ExecutionContext, db: JdbcProfile#Backend#Database): Future[Unit] = {
+  def ProcessRequests(allRequests: Seq[SlateEmergencyContactInfo])(implicit ec: ExecutionContext, db: JdbcProfile#Backend#Database): Future[Unit] = {
     partitionToGroups(allRequests).flatMap {
       case (compliant, nonCompliant) =>
         dealWithCompliantRecords(compliant)
@@ -55,9 +55,8 @@ trait EmergencyContactMethods extends DBFunctions {
    * @param db This is the database that we are interacting with.
    * @return The tuple of valid and invalid data.
    */
-  def partitionToGroups(allRequests: Future[Seq[SlateEmergencyContactInfo]])(implicit ec: ExecutionContext, db: JdbcProfile#Backend#Database): Future[(List[SpremrgRow], List[SlateEmergencyContactInfo])] = {
-
-    allRequests.flatMap(toRows).map(partitionFromEitherToGroups)
+  def partitionToGroups(allRequests: Seq[SlateEmergencyContactInfo])(implicit ec: ExecutionContext, db: JdbcProfile#Backend#Database): Future[(List[SpremrgRow], List[SlateEmergencyContactInfo])] = {
+    toRows(allRequests).map(partitionFromEitherToGroups)
   }
 
   /**

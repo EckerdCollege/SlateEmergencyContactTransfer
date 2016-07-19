@@ -14,9 +14,12 @@
  * limitations under the License.
  */
 
-package edu.eckerd.integrations.slate.emergencycontact.model
+package edu.eckerd.integrations.slate.emergencycontact.methods
 
-/**
- * Created by davenpcm on 6/30/16.
- */
-case class SlateResponse[A](row: Seq[A])
+import edu.eckerd.integrations.slate.core.DefaultJsonProtocol
+import edu.eckerd.integrations.slate.emergencycontact.model.SlateEmergencyContactInfo
+
+
+object EmergencyContactJsonProtocol extends DefaultJsonProtocol {
+  implicit def EmergencyContactFormat = jsonFormat8(SlateEmergencyContactInfo)
+}
