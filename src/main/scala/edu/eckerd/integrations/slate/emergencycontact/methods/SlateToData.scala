@@ -56,16 +56,22 @@ trait SlateToData extends jsonParserProtocol {
     ))
 
     responseFuture.flatMap {
-      case HttpResponse(StatusCodes.OK, headers, entity, _) =>
+      case HttpResponse(StatusCodes.OK, _, entity, _) =>
         for {
           slateResponse <- Unmarshal(entity).to[SlateResponse[A]]
-          shutdownHttp <- Http(system).shutdownAllConnectionPools()
-          terminate <- system.terminate()
+          _ <- Http(system).shutdownAllConnectionPools()
+          _ <- system.terminate()
         } yield slateResponse.row
+      case HttpResponse(StatusCodes.InternalServerError, _,  _, _) =>
+        for {
+          _ <- Http(system).shutdownAllConnectionPools()
+          _ <- system.terminate()
+          result <- Future.successful(Seq[A]())
+        } yield result
       case HttpResponse(code, _, _, _) =>
         for {
-          shutdownHttp <- Http(system).shutdownAllConnectionPools()
-          terminate <- system.terminate()
+          _ <- Http(system).shutdownAllConnectionPools()
+          _ <- system.terminate()
           failure <- Future.failed(new Throwable(s"Received invalid response code - $code"))
         } yield failure
     }
