@@ -191,10 +191,10 @@ trait EmergencyContactMethods extends DBFunctions {
         val areaCode = usNumber.dropWhile(_ != '-').drop(1).takeWhile(_ != '-')
         val phoneNumber = usNumber.dropWhile(_ != '-').drop(1).dropWhile(_ != '-').drop(1).replace("-", "")
         Right(PhoneNumber("1", Some(areaCode), phoneNumber))
-      //      case intlParsed if intlParsed.dropWhile(_ != "-").drop(1).length <= 12 && !intlParsed.startsWith("1-") =>
-      //        val natnCode = intlParsed.takeWhile(_ != "-")
-      //        val phoneNumber = intlParsed.dropWhile(_ != "-").drop(1).replace("-", "")
-      //        Right(PhoneNumber(natnCode, None, phoneNumber ))
+      case intlParsed if intlParsed.dropWhile(_ != "-").drop(1).length <= 12 && !intlParsed.startsWith("1-") =>
+        val natnCode = intlParsed.takeWhile(_ != "-")
+        val phoneNumber = intlParsed.dropWhile(_ != "-").drop(1).replace("-", "")
+        Right(PhoneNumber(natnCode, None, phoneNumber ))
       case _ => Left(number)
     }
   }
