@@ -49,7 +49,8 @@ trait DBFunctions extends LazyLogging {
   }
 
   /**
-   * This generates a Map from the description of the Relationship ie Mother, Father, Spouse to a code
+   * This generates a Map from the description of the Relationship ie Mother, Father, Spouse to a code. Turns all
+    * relationships to UpperCase.
    * value such as M, F , etc.
    * @param ec The execution context to fork futures from
    * @param db The database to fetch information from
@@ -58,16 +59,18 @@ trait DBFunctions extends LazyLogging {
   def generateRelationshipMap()(implicit ec: ExecutionContext, db: JdbcProfile#Backend#Database): Future[Map[String, Char]] = {
     import profile.api._
 
-    case class Relationship(code: String, description: Option[String])
-    implicit val getRelationshipResult = GetResult(r => Relationship(r.<<, r.<<))
+    case class OptRelationship(code: String, description: Option[String])
+    case class Relationship(code: Char, description: String)
+    implicit val getRelationshipResult = GetResult(r => OptRelationship(r.<<, r.<<))
 
-    val action = sql"""SELECT STVRELT_CODE, STVRELT_DESC FROM STVRELT""".as[Relationship]
+    val action = sql"""SELECT STVRELT_CODE, STVRELT_DESC FROM STVRELT""".as[OptRelationship]
 
     for {
       relationships <- db.run(action)
     } yield {
-      val relationshipsFiltered = relationships.filter(_.description.isDefined)
-      Map(relationshipsFiltered.map(r => r.description.get -> r.code.charAt(0)): _*)
+      val optRelationshipsFiltered = relationships.filter(_.description.isDefined)
+      val relationshipsExists = optRelationshipsFiltered.map(o => Relationship(o.code(0), o.description.get.toUpperCase))
+      Map(relationshipsExists.map(r => r.description -> r.code): _*)
     }
   }
 

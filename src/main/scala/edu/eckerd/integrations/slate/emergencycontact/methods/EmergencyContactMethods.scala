@@ -84,7 +84,7 @@ trait EmergencyContactMethods extends DBFunctions {
 
       val firstName = record.ECName.takeWhile(_ != ' ')
       val lastName = record.ECName.dropWhile(_ != ' ').drop(1)
-      val relationshipCode = map.get(record.ECRelationship)
+      val relationshipCode = map.get(record.ECRelationship.trim.toUpperCase)
 
       val phone = parsePhone(record)
       val validZip = record.ECAddressPostal.map(_.length <= 30)
