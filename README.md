@@ -1,0 +1,3 @@
+# Slate Emergency Contact Update [![Build Status](https://travis-ci.org/ChristopherDavenport/SlateEmergencyContactTransfer.svg?branch=master)](https://travis-ci.org/ChristopherDavenport/SlateMissingContactTransfer) [![codecov](https://codecov.io/gh/ChristopherDavenport/SlateEmergencyContactTransfer/branch/master/graph/badge.svg)](https://codecov.io/gh/ChristopherDavenport/SlateEmergencyContactTransfer)
+
+More Documentation to follow. 
