@@ -16,13 +16,15 @@
 
 package edu.eckerd.integrations.slate.emergencycontact.methods
 
+import com.google.i18n.phonenumbers.PhoneNumberUtil
 import edu.eckerd.integrations.slate.emergencycontact.model.SlateEmergencyContactInfo
 import edu.eckerd.integrations.slate.emergencycontact.persistence.SPREMRG.SpremrgRow
 import edu.eckerd.integrations.slate.emergencycontact.persistence.DBFunctions
 import slick.driver.JdbcProfile
 
 import scala.annotation.tailrec
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Try
 
 /**
  * Created by davenpcm on 7/7/16.
@@ -185,17 +187,25 @@ trait EmergencyContactMethods extends DBFunctions {
    */
   private def parsePhone(contactInfo: SlateEmergencyContactInfo): Either[String, PhoneNumber] = {
     val number = contactInfo.ECCell.getOrElse("")
-    val parse = number.replace("+", "").replace(".", "-").replace(" ", "-")
-    parse match {
-      case usNumber if usNumber.startsWith("1-") && usNumber.length == 14 =>
-        val areaCode = usNumber.dropWhile(_ != '-').drop(1).takeWhile(_ != '-')
-        val phoneNumber = usNumber.dropWhile(_ != '-').drop(1).dropWhile(_ != '-').drop(1).replace("-", "")
-        Right(PhoneNumber("1", Some(areaCode), phoneNumber))
-      //      case intlParsed if intlParsed.dropWhile(_ != "-").drop(1).length <= 12 && !intlParsed.startsWith("1-") =>
-      //        val natnCode = intlParsed.takeWhile(_ != "-")
-      //        val phoneNumber = intlParsed.dropWhile(_ != "-").drop(1).replace("-", "")
-      //        Right(PhoneNumber(natnCode, None, phoneNumber ))
-      case _ => Left(number)
+    val util = PhoneNumberUtil.getInstance()
+    val phoneTry = Try(util.parse(number, "US")).toOption
+
+    phoneTry match {
+      case Some(phone) =>
+        val countryCode = phone.getCountryCode.toString
+        val nationalNumber = phone.getNationalNumber.toString
+
+        countryCode match {
+          case "1" =>
+            val areaCode = nationalNumber.take(3)
+            val number = nationalNumber.drop(3)
+            if (number.length == 7) Right(PhoneNumber(countryCode, Some(areaCode), number))
+            else Left(number)
+          case _ => Right(PhoneNumber(countryCode, None, nationalNumber))
+        }
+      case None =>
+        Left(number)
+
     }
   }
 

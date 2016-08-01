@@ -30,7 +30,8 @@ libraryDependencies ++= {
     "com.typesafe.slick" %% "slick" % slickV,
     "com.typesafe.slick" %% "slick-extensions" % "3.1.0" ,
     "com.typesafe.slick" %% "slick-hikaricp" % slickV,
-    "me.lessis" %% "courier" % "0.1.3"
+    "me.lessis" %% "courier" % "0.1.3",
+    "com.googlecode.libphonenumber" % "libphonenumber" % "7.5.1"
   )
 }
 
