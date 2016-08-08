@@ -19,12 +19,7 @@ libraryDependencies ++= {
   val scalaTestV        = "2.2.6"
   val slickV            = "3.1.1"
   Seq(
-    "com.typesafe.akka" %% "akka-http-core"                    % akkaV,
-    "com.typesafe.akka" %% "akka-http-experimental"            % akkaV,
-    "com.typesafe.akka" %% "akka-http-spray-json-experimental" % akkaV,
-    "org.scalatest"     %% "scalatest"                         % scalaTestV       % "test",
-    "com.typesafe.akka" %% "akka-http-testkit"                 % akkaV            % "test",
-    "com.typesafe" % "config" % "1.3.0",
+    "edu.eckerd" %% "slate-core" % "0.1.0",
     "ch.qos.logback" % "logback-classic" % "1.1.3",
     "com.typesafe.scala-logging" %% "scala-logging" % "3.4.0",
     "com.typesafe.slick" %% "slick" % slickV,
@@ -40,7 +35,11 @@ headers := Map(
   "conf" -> Apache2_0("2016", "Eckerd College", "#")
 )
 
-resolvers += "Typesafe Releases" at "http://repo.typesafe.com/typesafe/maven-releases/"
+resolvers ++= Seq(
+  Resolver.sonatypeRepo("releases"),
+  Resolver.sonatypeRepo("snapshots"),
+  "Typesafe Releases" at "http://repo.typesafe.com/typesafe/maven-releases/"
+)
 
 mappings in Universal ++= Seq(
   sourceDirectory.value / "main" / "resources" / "application.conf" -> "conf/application.conf",
