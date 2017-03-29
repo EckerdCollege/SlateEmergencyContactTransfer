@@ -17,7 +17,7 @@
 package edu.eckerd.integrations.slate.emergencycontact
 
 import akka.actor.ActorSystem
-import akka.stream.{ActorMaterializer, ActorMaterializerSettings}
+import akka.stream.{ ActorMaterializer, ActorMaterializerSettings }
 
 import concurrent.duration.SECONDS
 import concurrent.duration.Duration
@@ -31,9 +31,6 @@ import edu.eckerd.integrations.slate.core.Request
 
 import concurrent.ExecutionContext.Implicits.global
 
-/**
- * Created by davenpcm on 6/29/16.
- */
 object MainApplication
     extends EmergencyContactMethods
     with DBImpl

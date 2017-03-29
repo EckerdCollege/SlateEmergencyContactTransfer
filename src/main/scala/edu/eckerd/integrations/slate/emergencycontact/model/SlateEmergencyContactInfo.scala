@@ -16,9 +16,6 @@
 
 package edu.eckerd.integrations.slate.emergencycontact.model
 
-/**
- * Created by davenpcm on 6/30/16.
- */
 case class SlateEmergencyContactInfo(
   BannerID: String,
   ECPriority: String,
