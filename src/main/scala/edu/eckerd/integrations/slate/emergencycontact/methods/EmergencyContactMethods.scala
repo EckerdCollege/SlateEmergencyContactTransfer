@@ -23,7 +23,7 @@ import edu.eckerd.integrations.slate.emergencycontact.persistence.DBFunctions
 import slick.driver.JdbcProfile
 
 import scala.annotation.tailrec
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
 /**

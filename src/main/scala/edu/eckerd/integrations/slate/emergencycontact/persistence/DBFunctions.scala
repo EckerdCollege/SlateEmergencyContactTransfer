@@ -24,9 +24,6 @@ import slick.jdbc.GetResult
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-/**
- * Created by davenpcm on 7/5/16.
- */
 trait DBFunctions extends LazyLogging {
   val profile: slick.driver.JdbcProfile
 
@@ -50,7 +47,7 @@ trait DBFunctions extends LazyLogging {
 
   /**
    * This generates a Map from the description of the Relationship ie Mother, Father, Spouse to a code. Turns all
-    * relationships to UpperCase.
+   * relationships to UpperCase.
    * value such as M, F , etc.
    * @param ec The execution context to fork futures from
    * @param db The database to fetch information from
