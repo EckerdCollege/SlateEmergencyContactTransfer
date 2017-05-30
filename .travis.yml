@@ -1,6 +1,7 @@
 language: scala
 scala:
-  - 2.11.8
+  - 2.12.2
+  - 2.11.11
 jdk:
   - oraclejdk8
 
@@ -11,6 +12,3 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
-
-notifications:
-  slack: eckerddevelopers:5F0xCSx0NtjfoJzQSojDKfnK

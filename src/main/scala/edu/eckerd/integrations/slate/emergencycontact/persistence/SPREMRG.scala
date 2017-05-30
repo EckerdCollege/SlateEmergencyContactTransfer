@@ -19,12 +19,12 @@ package edu.eckerd.integrations.slate.emergencycontact.persistence
 // AUTO-GENERATED Slick data model
 /** Stand-alone Slick data model for immediate use */
 object SPREMRG extends {
-  val profile = com.typesafe.slick.driver.oracle.OracleDriver
+  val profile = slick.jdbc.OracleProfile
 } with SPREMRG
 
 /** Slick data model trait for extension, choice of backend or usage in the cake pattern. (Make sure to initialize this late.) */
 trait SPREMRG {
-  val profile: slick.driver.JdbcProfile
+  val profile: slick.jdbc.JdbcProfile
   import profile.api._
   import slick.model.ForeignKeyAction
   import slick.collection.heterogeneous._
