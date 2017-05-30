@@ -16,11 +16,11 @@
 
 package edu.eckerd.integrations.slate.emergencycontact.persistence
 
-import slick.backend.DatabaseConfig
-import slick.driver.JdbcProfile
+import slick.basic.DatabaseConfig
+import slick.jdbc.JdbcProfile
 
 trait HasDB {
   implicit val dbConfig: DatabaseConfig[JdbcProfile] = DatabaseConfig.forConfig("oracle")
-  implicit val profile = dbConfig.driver
+  implicit val profile = dbConfig.profile
   implicit val db = dbConfig.db
 }

@@ -19,13 +19,13 @@ package edu.eckerd.integrations.slate.emergencycontact.persistence
 import com.typesafe.scalalogging.LazyLogging
 import edu.eckerd.integrations.slate.emergencycontact.persistence.SPREMRG.Spremrg
 import edu.eckerd.integrations.slate.emergencycontact.persistence.SPREMRG.SpremrgRow
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 import slick.jdbc.GetResult
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait DBFunctions extends LazyLogging {
-  val profile: slick.driver.JdbcProfile
+  val profile: JdbcProfile
 
   /**
    * This function is about as simple as they come. It takes a bannerID as a String, queries banner looking for a
