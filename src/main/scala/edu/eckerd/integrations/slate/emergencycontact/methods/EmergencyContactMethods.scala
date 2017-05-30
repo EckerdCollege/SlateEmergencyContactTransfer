@@ -20,7 +20,7 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil
 import edu.eckerd.integrations.slate.emergencycontact.model.SlateEmergencyContactInfo
 import edu.eckerd.integrations.slate.emergencycontact.persistence.SPREMRG.SpremrgRow
 import edu.eckerd.integrations.slate.emergencycontact.persistence.DBFunctions
-import slick.driver.JdbcProfile
+import slick.jdbc.JdbcProfile
 
 import scala.annotation.tailrec
 import scala.concurrent.{ ExecutionContext, Future }
