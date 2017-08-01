@@ -38,6 +38,7 @@ case class Mail(
     cc foreach commonsMail.addCc
     bcc foreach commonsMail.addBcc
 
+    commonsMail.setStartTLSEnabled(true)
     commonsMail.setHostName(hostname)
 
     commonsMail
