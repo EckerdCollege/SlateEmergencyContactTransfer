@@ -24,5 +24,6 @@ case class SlateEmergencyContactInfo(
   ECCell: Option[String],
   ECAddressStreet: Option[String],
   ECAddressCity: Option[String],
+  ECState: Option[String],
   ECAddressPostal: Option[String]
 )

@@ -72,6 +72,7 @@ object Courier {
           |                        <th>Phone Number</th>
           |                        <th>Street Address</th>
           |                        <th>City</th>
+          |                        <th>State</th>
           |                        <th>Zip Code</th>
           |                        </tr>""".stripMargin +
           content +
