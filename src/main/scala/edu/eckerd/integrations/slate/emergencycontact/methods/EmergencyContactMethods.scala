@@ -85,20 +85,20 @@ trait EmergencyContactMethods extends DBFunctions {
     } yield {
 
       val firstName = record.ECName.takeWhile(_ != ' ')
-      val lastName = record.ECName.dropWhile(_ != ' ').drop(1)
+      val lastName = Option(record.ECName.dropWhile(_ != ' ').drop(1))
       val relationshipCode = map.get(record.ECRelationship.trim.toUpperCase)
 
       val phone = parsePhone(record)
       val validZip = record.ECAddressPostal.map(_.length <= 30)
       val validState = record.ECState.map(_.length <= 3)
 
-      val either = (pidm, phone, validZip, validState, relationshipCode) match {
-        case (Some(pid), Right(usPhoneNumber), Some(true), Some(true), Some(code)) =>
+      val either = (pidm, phone, validZip, validState, relationshipCode, lastName) match {
+        case (Some(pid), Right(usPhoneNumber), Some(true), Some(true), Some(code), Some(last)) =>
           Right(
             SpremrgRow(
               pid,
               record.ECPriority.charAt(0),
-              lastName,
+              last,
               firstName,
               record.ECAddressStreet,
               record.ECAddressCity,
