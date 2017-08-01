@@ -20,5 +20,5 @@ import edu.eckerd.integrations.slate.core.DefaultJsonProtocol
 import edu.eckerd.integrations.slate.emergencycontact.model.SlateEmergencyContactInfo
 
 object EmergencyContactJsonProtocol extends DefaultJsonProtocol {
-  implicit def EmergencyContactFormat = jsonFormat8(SlateEmergencyContactInfo)
+  implicit def EmergencyContactFormat = jsonFormat9(SlateEmergencyContactInfo)
 }

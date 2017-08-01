@@ -87,9 +87,10 @@ trait EmergencyContactMethods extends DBFunctions {
 
       val phone = parsePhone(record)
       val validZip = record.ECAddressPostal.map(_.length <= 30)
+      val validState = record.ECAddressState.map(_.length <= 3)
 
-      val either = (pidm, phone, validZip, relationshipCode) match {
-        case (Some(pid), Right(usPhoneNumber), Some(true), Some(code)) =>
+      val either = (pidm, phone, validZip, validState, relationshipCode) match {
+        case (Some(pid), Right(usPhoneNumber), Some(true), Some(true), Some(code)) =>
           Right(
             SpremrgRow(
               pid,
@@ -98,6 +99,7 @@ trait EmergencyContactMethods extends DBFunctions {
               firstName,
               record.ECAddressStreet,
               record.ECAddressCity,
+              record.ECAddressState,
               record.ECAddressPostal,
               Some(usPhoneNumber.natnCode),
               usPhoneNumber.areaCode,
@@ -108,7 +110,7 @@ trait EmergencyContactMethods extends DBFunctions {
               Some("ECBATCH")
             )
           )
-        case (_, _, _, _) =>
+        case _ =>
           Left(record)
       }
 
@@ -157,6 +159,7 @@ trait EmergencyContactMethods extends DBFunctions {
           x.ECCell,
           x.ECAddressStreet,
           x.ECAddressCity,
+          x.ECAddressState,
           x.ECAddressPostal
         ) :: acc
 
@@ -266,6 +269,7 @@ trait EmergencyContactMethods extends DBFunctions {
         |Phone Number     - ${slateEmergencyContactInfo.ECCell.getOrElse("")}
         |Street Address   - ${slateEmergencyContactInfo.ECAddressStreet.getOrElse("")}
         |City             - ${slateEmergencyContactInfo.ECAddressCity.getOrElse("")}
+        |State            - ${slateEmergencyContactInfo.ECAddressState.getOrElse("")}
         |Zip Code         - ${slateEmergencyContactInfo.ECAddressPostal.getOrElse("")}""".stripMargin
   }
 
@@ -285,6 +289,7 @@ trait EmergencyContactMethods extends DBFunctions {
        |  <td>${slateEmergencyContactInfo.ECCell.getOrElse("")}</td>
        |  <td>${slateEmergencyContactInfo.ECAddressStreet.getOrElse("")}</td>
        |  <td>${slateEmergencyContactInfo.ECAddressCity.getOrElse("")}</td>
+       |  <td>${slateEmergencyContactInfo.ECAddressState.getOrElse("")}</td>
        |  <td>${slateEmergencyContactInfo.ECAddressPostal.getOrElse("")}</td>
        |</tr>
      """.stripMargin

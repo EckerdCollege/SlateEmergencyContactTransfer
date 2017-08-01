@@ -44,6 +44,7 @@ trait SPREMRG {
     firstName: String,
     streetAddr: Option[String],
     city: Option[String],
+    state: Option[String],
     zip: Option[String],
     phoneCountryCode: Option[String],
     phoneAreaCode: Option[String],
@@ -64,6 +65,7 @@ trait SPREMRG {
       spremrgFirstName,
       spremrgStreetLine1,
       spremrgCity,
+      spremrgStatCode,
       spremrgZip,
       spremrgCtryCodePhone,
       spremrgPhoneArea,
@@ -92,8 +94,8 @@ trait SPREMRG {
     //    val spremrgStreetLine3: Rep[Option[String]] = column[Option[String]]("SPREMRG_STREET_LINE3", O.Length(75,varying=true))
     /** Database column SPREMRG_CITY SqlType(VARCHAR2), Length(50,true) */
     val spremrgCity: Rep[Option[String]] = column[Option[String]]("SPREMRG_CITY", O.Length(50, varying = true))
-    //    /** Database column SPREMRG_STAT_CODE SqlType(VARCHAR2), Length(3,true) */
-    //    val spremrgStatCode: Rep[Option[String]] = column[Option[String]]("SPREMRG_STAT_CODE", O.Length(3,varying=true))
+    /** Database column SPREMRG_STAT_CODE SqlType(VARCHAR2), Length(3,true) */
+    val spremrgStatCode: Rep[Option[String]] = column[Option[String]]("SPREMRG_STAT_CODE", O.Length(3,varying=true))
     //    /** Database column SPREMRG_NATN_CODE SqlType(VARCHAR2), Length(5,true) */
     //    val spremrgNatnCode: Rep[Option[String]] = column[Option[String]]("SPREMRG_NATN_CODE", O.Length(5,varying=true))
     /** Database column SPREMRG_ZIP SqlType(VARCHAR2), Length(30,true) */
