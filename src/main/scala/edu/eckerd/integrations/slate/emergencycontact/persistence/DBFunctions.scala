@@ -79,7 +79,7 @@ trait DBFunctions extends LazyLogging {
    * @param ec Execution Context to Fork Processes Off Of
    * @return Unit. Fire and Forget On The Edge of The Application
    */
-  def UpdateDB(list: List[SpremrgRow])(implicit db: JdbcProfile#Backend#Database, ec: ExecutionContext): Future[Unit] = {
+  def UpdateDB(list: List[SpremrgRow])(implicit db: JdbcProfile#Backend#Database, ec: ExecutionContext): Future[List[Int]] = {
     import profile.api._
 
     val actions = Future.sequence {
@@ -89,24 +89,25 @@ trait DBFunctions extends LazyLogging {
         bool <- queryIfEmergencyContactExists(row)
         result <- bool match {
           case true =>
-            logger.debug(s"Updating Row $row")
-            updateByRow(row) recoverWith {
-              case badKid =>
-                logger.error(s"${badKid.getLocalizedMessage} at Pidm - ${row.pidm}, Priority - ${row.priority}")
-                Future { badKid }
-            }
+            logger.info(s"Updating Row $row")
+            updateByRow(row)
+              .recoverWith {
+                case badKid =>
+                  logger.error(s"${badKid.getLocalizedMessage} at Pidm - ${row.pidm}, Priority - ${row.priority}")
+                  Future.successful{ 0 }
+              }
           case false =>
-            logger.debug(s"Inserting Row $row")
+            logger.info(s"Inserting Row $row")
             db.run(Spremrg += row) recoverWith {
               case badKid =>
                 logger.error(s"Error - ${badKid.getLocalizedMessage} at ${row.pidm}")
-                Future { badKid }
+                Future.successful( 0 )
             }
         }
       } yield result
     }
 
-    actions.map(_ => ())
+    actions
   }
 
   /**

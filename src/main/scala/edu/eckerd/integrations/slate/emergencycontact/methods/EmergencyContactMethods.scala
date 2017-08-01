@@ -39,11 +39,14 @@ trait EmergencyContactMethods extends DBFunctions {
    * @param db This is the database that we are interacting with.
    * @return
    */
-  def ProcessRequests(allRequests: Seq[SlateEmergencyContactInfo])(implicit ec: ExecutionContext, db: JdbcProfile#Backend#Database): Future[Unit] = {
+  def ProcessRequests(allRequests: Seq[SlateEmergencyContactInfo])(implicit ec: ExecutionContext, db: JdbcProfile#Backend#Database): Future[Int] = {
     partitionToGroups(allRequests).flatMap {
       case (compliant, nonCompliant) =>
-        dealWithCompliantRecords(compliant)
-        dealWithNonCompliantRecords(nonCompliant)
+        for {
+          comp <- dealWithCompliantRecords(compliant)
+          non <- dealWithNonCompliantRecords(nonCompliant)
+        } yield comp + nonCompliant.length
+
     }
 
   }
@@ -237,8 +240,8 @@ trait EmergencyContactMethods extends DBFunctions {
    * @param db The database to Write to
    * @return Unit You are lucky you know that anything happened.
    */
-  private def dealWithCompliantRecords(list: List[SpremrgRow])(implicit ec: ExecutionContext, db: JdbcProfile#Backend#Database): Future[Unit] = {
-    UpdateDB(list)
+  private def dealWithCompliantRecords(list: List[SpremrgRow])(implicit ec: ExecutionContext, db: JdbcProfile#Backend#Database): Future[Int] = {
+    UpdateDB(list).map(_.sum)
   }
 
   /**
@@ -252,6 +255,8 @@ trait EmergencyContactMethods extends DBFunctions {
     case 0 => Future.successful((): Unit)
     case _ =>
       val content = list.map(printEmergencyContactInfoAsHTMLRow).foldRight("")(_ + _)
+      logger.info(s"Failed to parse ${list.length} records")
+      list.foreach(seci => logger.info(s"Failed to parse automatically - $seci"))
       Courier.sendManualParseEmail(content)
   }
 

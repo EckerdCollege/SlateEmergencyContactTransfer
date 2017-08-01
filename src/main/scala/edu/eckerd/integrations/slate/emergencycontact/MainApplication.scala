@@ -40,13 +40,21 @@ object MainApplication
 
   logger.info("Starting Slate Emergency Request Transfer")
 
-  val actions = Request.SingleRequestForConfig[SlateEmergencyContactInfo]("slate")
+  val request = Request.SingleRequestForConfig[SlateEmergencyContactInfo]("slate")
+
+  val actions = request
     .flatMap(ProcessRequests)
 
-  Await.result(
+  val result = Await.result(
     actions,
     Duration(60, SECONDS)
   )
 
-  logger.info("Exiting Slate Emergency Request Transfer Normally")
+  val requestRecords = Await.result(
+    request,
+    Duration(60, SECONDS)
+  ).length
+
+
+  logger.info(s"Exiting Slate Emergency Request Transfer Normally - $result records processed of $requestRecords.")
 }
