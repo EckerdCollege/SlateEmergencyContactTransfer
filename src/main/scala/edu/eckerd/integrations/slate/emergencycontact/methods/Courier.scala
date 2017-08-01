@@ -88,7 +88,7 @@ object Courier {
           """.stripMargin
       )
 
-    ).send(hostname)
+    ).send(hostname, s"$sender@$senderDomain", senderPassword)
     )
 
   }

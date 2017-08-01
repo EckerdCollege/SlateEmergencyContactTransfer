@@ -11,7 +11,7 @@ case class Mail(
                  attachment: Option[(java.io.File)] = None
                ) {
 
-  def send(hostname: String): Unit = {
+  def send(hostname: String, user: String, pass: String): Unit = {
     import org.apache.commons.mail._
 
     val format =
@@ -38,8 +38,17 @@ case class Mail(
     cc foreach commonsMail.addCc
     bcc foreach commonsMail.addBcc
 
-    commonsMail.setStartTLSEnabled(true)
+    commonsMail.setSmtpPort(587)
+    commonsMail.setAuthenticator(new DefaultAuthenticator(user, pass))
+    commonsMail.setDebug(true)
     commonsMail.setHostName(hostname)
+    commonsMail.getMailSession.getProperties.put("mail.smtps.auth", "true")
+    commonsMail.getMailSession.getProperties.put("mail.debug", "true")
+    commonsMail.getMailSession.getProperties.put("mail.smtps.port", "587")
+    commonsMail.getMailSession.getProperties.put("mail.smtps.socketFactory.port", "587")
+    commonsMail.getMailSession.getProperties.put("mail.smtps.socketFactory.class", "javax.net.ssl.SSLSocketFactory")
+    commonsMail.getMailSession.getProperties.put("mail.smtps.socketFactory.fallback", "false")
+    commonsMail.getMailSession.getProperties.put("mail.smtp.starttls.enable", "true")
 
     commonsMail
       .setFrom(from._1, from._2)
