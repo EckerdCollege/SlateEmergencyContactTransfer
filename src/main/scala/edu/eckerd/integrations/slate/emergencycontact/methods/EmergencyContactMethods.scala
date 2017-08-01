@@ -93,7 +93,7 @@ trait EmergencyContactMethods extends DBFunctions {
       val validState = record.ECState.map(_.length <= 3)
 
       val either = (pidm, phone, validZip, validState, relationshipCode, lastName) match {
-        case (Some(pid), Right(usPhoneNumber), Some(true), Some(true), Some(code), Some(last)) =>
+        case (Some(pid), Right(usPhoneNumber), Some(true), Some(true), Some(code), Some(last)) if last != "" =>
           Right(
             SpremrgRow(
               pid,
