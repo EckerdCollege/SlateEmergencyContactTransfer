@@ -11,7 +11,7 @@ case class Mail(
                  attachment: Option[(java.io.File)] = None
                ) {
 
-  def send(): Unit = {
+  def send(hostname: String): Unit = {
     import org.apache.commons.mail._
 
     val format =
@@ -37,6 +37,8 @@ case class Mail(
     to foreach commonsMail.addTo
     cc foreach commonsMail.addCc
     bcc foreach commonsMail.addBcc
+
+    commonsMail.setHostName(hostname)
 
     commonsMail
       .setFrom(from._1, from._2)

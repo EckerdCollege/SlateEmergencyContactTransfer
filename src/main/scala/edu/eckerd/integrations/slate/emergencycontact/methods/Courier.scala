@@ -29,6 +29,7 @@ object Courier {
   val senderDomain = config.getString("courier.sender.domain")
   val recipient = config.getString("courier.recipient.user")
   val recipientDomain = config.getString("courier.recipient.domain")
+  val hostname = config.getString("courier.sender.hostname")
 
   /**
    * Creates an Email From a piece of content that is formulated as a 8 column table with headers in place for
@@ -87,7 +88,7 @@ object Courier {
           """.stripMargin
       )
 
-    ).send()
+    ).send(hostname)
     )
 
   }
