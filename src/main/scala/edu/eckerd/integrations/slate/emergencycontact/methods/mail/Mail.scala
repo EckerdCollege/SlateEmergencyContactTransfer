@@ -38,10 +38,10 @@ case class Mail(
     cc foreach commonsMail.addCc
     bcc foreach commonsMail.addBcc
 
-    commonsMail.
-      setFrom(from._1, from._2).
-      setSubject(subject).
-      send()
+    commonsMail
+      .setFrom(from._1, from._2)
+      .setSubject(subject)
+      .send()
   }
 
 }
