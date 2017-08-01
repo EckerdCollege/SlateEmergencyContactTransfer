@@ -87,7 +87,7 @@ trait EmergencyContactMethods extends DBFunctions {
 
       val phone = parsePhone(record)
       val validZip = record.ECAddressPostal.map(_.length <= 30)
-      val validState = record.ECAddressState.map(_.length <= 3)
+      val validState = record.ECState.map(_.length <= 3)
 
       val either = (pidm, phone, validZip, validState, relationshipCode) match {
         case (Some(pid), Right(usPhoneNumber), Some(true), Some(true), Some(code)) =>
@@ -99,7 +99,7 @@ trait EmergencyContactMethods extends DBFunctions {
               firstName,
               record.ECAddressStreet,
               record.ECAddressCity,
-              record.ECAddressState,
+              record.ECState,
               record.ECAddressPostal,
               Some(usPhoneNumber.natnCode),
               usPhoneNumber.areaCode,
@@ -159,7 +159,7 @@ trait EmergencyContactMethods extends DBFunctions {
           x.ECCell,
           x.ECAddressStreet,
           x.ECAddressCity,
-          x.ECAddressState,
+          x.ECState,
           x.ECAddressPostal
         ) :: acc
 
@@ -269,7 +269,7 @@ trait EmergencyContactMethods extends DBFunctions {
         |Phone Number     - ${slateEmergencyContactInfo.ECCell.getOrElse("")}
         |Street Address   - ${slateEmergencyContactInfo.ECAddressStreet.getOrElse("")}
         |City             - ${slateEmergencyContactInfo.ECAddressCity.getOrElse("")}
-        |State            - ${slateEmergencyContactInfo.ECAddressState.getOrElse("")}
+        |State            - ${slateEmergencyContactInfo.ECState.getOrElse("")}
         |Zip Code         - ${slateEmergencyContactInfo.ECAddressPostal.getOrElse("")}""".stripMargin
   }
 
@@ -289,7 +289,7 @@ trait EmergencyContactMethods extends DBFunctions {
        |  <td>${slateEmergencyContactInfo.ECCell.getOrElse("")}</td>
        |  <td>${slateEmergencyContactInfo.ECAddressStreet.getOrElse("")}</td>
        |  <td>${slateEmergencyContactInfo.ECAddressCity.getOrElse("")}</td>
-       |  <td>${slateEmergencyContactInfo.ECAddressState.getOrElse("")}</td>
+       |  <td>${slateEmergencyContactInfo.ECState.getOrElse("")}</td>
        |  <td>${slateEmergencyContactInfo.ECAddressPostal.getOrElse("")}</td>
        |</tr>
      """.stripMargin
