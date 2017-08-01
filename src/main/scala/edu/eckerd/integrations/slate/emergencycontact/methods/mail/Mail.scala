@@ -40,10 +40,8 @@ case class Mail(
 
     commonsMail.setSmtpPort(587)
     commonsMail.setAuthenticator(new DefaultAuthenticator(user, pass))
-    commonsMail.setDebug(true)
     commonsMail.setHostName(hostname)
     commonsMail.getMailSession.getProperties.put("mail.smtps.auth", "true")
-    commonsMail.getMailSession.getProperties.put("mail.debug", "true")
     commonsMail.getMailSession.getProperties.put("mail.smtps.port", "587")
     commonsMail.getMailSession.getProperties.put("mail.smtps.socketFactory.port", "587")
     commonsMail.getMailSession.getProperties.put("mail.smtps.socketFactory.class", "javax.net.ssl.SSLSocketFactory")
